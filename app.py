@@ -33,7 +33,7 @@ def limit():
 
 @app.get("/")
 def home():
-    return send_from_directory("static", "index.html")
+    return send_from_directory(".", "index.html")
 
 @app.get("/api/depositor/<number>")
 def depositor(number):
