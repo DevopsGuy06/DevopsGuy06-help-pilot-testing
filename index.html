@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ta"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Neomax Help – Pilot v1</title>
+<style>
+body{font-family:system-ui,sans-serif;margin:0;background:#f4f6f8;color:#17202a}
+header{background:#153b5b;color:#fff;padding:20px}main{max-width:760px;margin:auto;padding:18px}
+.card{background:#fff;border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 2px 10px #0001}
+input,button{font-size:18px;padding:13px;border-radius:10px;width:100%;box-sizing:border-box}
+input{border:1px solid #ccd3da}button{border:0;background:#153b5b;color:#fff;margin-top:10px}
+.badge{display:inline-block;padding:7px 10px;border-radius:20px;margin:4px;font-weight:600}
+.green{background:#d9f7df}.yellow{background:#fff1bd}.gray{background:#e8ecef}
+.small{font-size:13px;color:#5f6b75}.hidden{display:none}
+</style></head>
+<body><header><h2>🏠 Neomax Help</h2><div>என் Neomax நிலை — Pilot v1</div></header>
+<main><div class="card"><h3>🔎 Depositor Number</h3>
+<input id="no" placeholder="உதா: PILOT1001"><button onclick="search()">நிலை பார்க்க</button>
+<p class="small">Pilot testing-க்காக synthetic/demo data மட்டும்.</p></div>
+<div id="result" class="hidden"><div class="card"><h3 id="title"></h3><div id="summary"></div></div>
+<div class="card"><h3>💰 என் பணம்</h3><div id="money"></div></div>
+<div class="card"><h3>📄 Documents / Entries</h3><div id="records"></div></div>
+<div class="card"><h3>⚖️ Complaint</h3><p>இந்த Pilot-ல் complaint tracking இன்னும் இணைக்கப்படவில்லை.</p><span class="badge gray">⚪ தகவல் கிடைக்கவில்லை</span></div>
+<div class="card"><h3>❓ என்ன செய்ய வேண்டும்?</h3><div id="action"></div></div></div></main>
+<script>
+async function search(){
+ const n=document.getElementById('no').value.trim(); if(!n)return;
+ const d=await (await fetch('/api/depositor/'+encodeURIComponent(n))).json();
+ document.getElementById('result').classList.remove('hidden');
+ if(!d.found){document.getElementById('title').textContent='பதிவு கிடைக்கவில்லை';
+ document.getElementById('summary').innerHTML='<span class="badge gray">⚪ தகவல் கிடைக்கவில்லை</span><p>இந்த Pilot dataset-ல் பதிவு இல்லை.</p>';
+ document.getElementById('money').innerHTML='';document.getElementById('records').innerHTML='';
+ document.getElementById('action').innerHTML='<p>Test: <b>PILOT1001</b> அல்லது <b>PILOT1002</b>.</p>';return;}
+ document.getElementById('title').textContent='Depositor '+d.depositor_no;
+ document.getElementById('summary').innerHTML='<p><b>'+d.name+'</b></p><p>Mobile: '+d.mobile+'</p><span class="badge green">🟢 '+(d.status_counts["Accepted Entry"]||0)+' Accepted</span><span class="badge yellow">🟡 '+(d.status_counts["Unconfirmed Entries"]||0)+' Unconfirmed</span>';
+ document.getElementById('money').innerHTML='<h2>₹'+d.total.toLocaleString('en-IN')+'</h2><p>'+d.record_count+' record(s)</p>';
+ document.getElementById('records').innerHTML=d.records.map(x=>'<div class="card"><b>'+x.receipt+'</b> · '+x.company+'<br>₹'+x.amount.toLocaleString('en-IN')+' · '+x.date+'<br><span class="badge '+(x.status==="Accepted Entry"?'green':'yellow')+'">'+x.status+'</span></div>').join('');
+ const un=d.records.some(x=>x.status!=='Accepted Entry');
+ document.getElementById('action').innerHTML=un?'<span class="badge yellow">🟡 Verification தேவை</span><p>Unconfirmed entry இருப்பதால் source document-ஐ வைத்து சரிபார்ப்பு தேவை.</p>':'<span class="badge green">🟢 இப்போது action தேவையில்லை</span>';
+}
+</script></body></html>
