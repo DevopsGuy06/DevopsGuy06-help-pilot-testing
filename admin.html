@@ -1,0 +1,777 @@
+<!doctype html>
+<html lang="ta">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Neomax Help – Admin</title>
+
+<style>
+body{
+    font-family:system-ui,sans-serif;
+    margin:0;
+    background:#f4f6f8;
+    color:#17202a
+}
+
+header{
+    background:#153b5b;
+    color:white;
+    padding:20px
+}
+
+main{
+    max-width:760px;
+    margin:auto;
+    padding:18px
+}
+
+.card{
+    background:white;
+    border-radius:16px;
+    padding:18px;
+    margin:14px 0;
+    box-shadow:0 2px 10px #0001
+}
+
+input,button{
+    font-size:18px;
+    padding:13px;
+    border-radius:10px;
+    width:100%;
+    box-sizing:border-box
+}
+
+input{
+    border:1px solid #ccd3da
+}
+
+button{
+    border:0;
+    background:#153b5b;
+    color:white;
+    margin-top:10px
+}
+
+.logout{
+    background:#8b1e1e
+}
+
+.stat{
+    display:inline-block;
+    width:44%;
+    margin:1%;
+    padding:15px;
+    background:#f1f4f6;
+    border-radius:12px;
+    text-align:center
+}
+
+.stat b{
+    display:block;
+    font-size:25px
+}
+
+.badge{
+    display:inline-block;
+    padding:7px 10px;
+    border-radius:20px;
+    margin:4px;
+    font-weight:600
+}
+
+.green{
+    background:#d9f7df
+}
+
+.yellow{
+    background:#fff1bd
+}
+
+.gray{
+    background:#e8ecef
+}
+
+.hidden{
+    display:none
+}
+
+.small{
+    font-size:13px;
+    color:#5f6b75
+}
+
+.error{
+    color:#a40000;
+    font-weight:600
+}
+
+.success{
+    color:#176b2c;
+    font-weight:600
+}
+
+.activity{
+    padding:10px;
+    border-bottom:1px solid #eee
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+<h2>🔐 Neomax Help Admin</h2>
+
+<div>Master Data & Activity Dashboard</div>
+
+</header>
+
+
+<main>
+
+
+<!-- =========================
+     ADMIN LOGIN
+========================= -->
+
+<div id="login" class="card">
+
+<h3>🔐 Admin Login</h3>
+
+<input
+    id="username"
+    placeholder="Username"
+    autocomplete="username"
+>
+
+<input
+    id="password"
+    type="password"
+    placeholder="Password"
+    autocomplete="current-password"
+>
+
+<button onclick="adminLogin()">
+    Login
+</button>
+
+<p id="loginMsg"></p>
+
+<p class="small">
+Pilot username: <b>admin</b><br>
+Pilot password: <b>Admin@123</b>
+</p>
+
+</div>
+
+
+<!-- =========================
+     DASHBOARD
+========================= -->
+
+<div id="dashboard" class="hidden">
+
+
+<div class="card">
+
+<h3>📊 Dashboard</h3>
+
+<div class="stat">
+<b id="depositors">0</b>
+Depositors
+</div>
+
+<div class="stat">
+<b id="records">0</b>
+Records
+</div>
+
+<div class="stat">
+<b id="accepted">0</b>
+Accepted
+</div>
+
+<div class="stat">
+<b id="unconfirmed">0</b>
+Unconfirmed
+</div>
+
+<div class="stat">
+<b id="duplicate">0</b>
+Duplicate
+</div>
+
+<div class="stat">
+<b id="amount">₹0</b>
+Total Amount
+</div>
+
+</div>
+
+
+<!-- =========================
+     SEARCH
+========================= -->
+
+<div class="card">
+
+<h3>🔎 Search Depositor</h3>
+
+<input
+    id="searchNo"
+    placeholder="உதா: PILOT1001"
+>
+
+<button onclick="searchDepositor()">
+    Search
+</button>
+
+<div id="searchResult"></div>
+
+</div>
+
+
+<!-- =========================
+     ACTIVITY
+========================= -->
+
+<div class="card">
+
+<h3>📋 Activity Log</h3>
+
+<button onclick="loadActivity()">
+    Refresh Activity
+</button>
+
+<div id="activity"></div>
+
+</div>
+
+
+<!-- =========================
+     LOGOUT
+========================= -->
+
+<div class="card">
+
+<button
+    class="logout"
+    onclick="adminLogout()"
+>
+    🚪 Admin Logout
+</button>
+
+</div>
+
+
+</div>
+
+</main>
+
+
+<script>
+
+
+/* =========================
+   ADMIN LOGIN
+========================= */
+
+async function adminLogin(){
+
+    const username =
+        document
+        .getElementById("username")
+        .value
+        .trim();
+
+    const password =
+        document
+        .getElementById("password")
+        .value;
+
+
+    if(!username || !password){
+
+        showLoginMessage(
+            "Username மற்றும் Password உள்ளிடுங்கள்",
+            true
+        );
+
+        return;
+    }
+
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/login",
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                        "application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        username:username,
+
+                        password:password
+
+                    })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if(!response.ok){
+
+            showLoginMessage(
+                data.error ||
+                "Login failed",
+                true
+            );
+
+            return;
+        }
+
+
+        document
+            .getElementById("login")
+            .classList
+            .add("hidden");
+
+
+        document
+            .getElementById("dashboard")
+            .classList
+            .remove("hidden");
+
+
+        loadDashboard();
+
+        loadActivity();
+
+
+    }catch(error){
+
+        showLoginMessage(
+            "Server connection error",
+            true
+        );
+
+    }
+
+}
+
+
+/* =========================
+   DASHBOARD
+========================= */
+
+async function loadDashboard(){
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/dashboard"
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if(!response.ok){
+
+            alert(
+                data.error ||
+                "Admin authentication required."
+            );
+
+            location.reload();
+
+            return;
+        }
+
+
+        document
+            .getElementById("depositors")
+            .textContent =
+            data.total_depositors;
+
+
+        document
+            .getElementById("records")
+            .textContent =
+            data.total_records;
+
+
+        document
+            .getElementById("accepted")
+            .textContent =
+            data.accepted;
+
+
+        document
+            .getElementById("unconfirmed")
+            .textContent =
+            data.unconfirmed;
+
+
+        document
+            .getElementById("duplicate")
+            .textContent =
+            data.duplicate;
+
+
+        document
+            .getElementById("amount")
+            .textContent =
+            "₹"
+            +
+            data.total_amount
+                .toLocaleString("en-IN");
+
+
+    }catch(error){
+
+        alert(
+            "Dashboard load failed"
+        );
+
+    }
+
+}
+
+
+/* =========================
+   SEARCH
+========================= */
+
+async function searchDepositor(){
+
+    const number =
+        document
+        .getElementById("searchNo")
+        .value
+        .trim()
+        .toUpperCase();
+
+
+    if(!number){
+
+        document
+            .getElementById("searchResult")
+            .innerHTML =
+            "<p class='error'>Depositor Number உள்ளிடுங்கள்.</p>";
+
+        return;
+    }
+
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/search/"
+                +
+                encodeURIComponent(number)
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if(!response.ok){
+
+            document
+                .getElementById("searchResult")
+                .innerHTML =
+                "<p class='error'>"
+                +
+                (data.error ||
+                "Unauthorized")
+                +
+                "</p>";
+
+            return;
+        }
+
+
+        if(!data.found){
+
+            document
+                .getElementById("searchResult")
+                .innerHTML =
+                "<p>⚪ Depositor கிடைக்கவில்லை.</p>";
+
+            return;
+        }
+
+
+        let html =
+
+            "<div class='card'>"
+
+            +
+
+            "<h3>"
+            + data.depositor_no
+            + "</h3>"
+
+            +
+
+            "<p><b>"
+            + data.name
+            + "</b></p>"
+
+            +
+
+            "<p>Mobile: "
+            + data.mobile
+            + "</p>";
+
+
+        data.records.forEach(
+            function(record){
+
+                html +=
+
+                    "<div class='card'>"
+
+                    +
+
+                    "<b>"
+                    + record.receipt
+                    + "</b> · "
+                    + record.company
+
+                    +
+
+                    "<br>₹"
+                    + record.amount
+                        .toLocaleString("en-IN")
+
+                    +
+
+                    " · "
+                    + record.date
+
+                    +
+
+                    "<br>"
+
+                    +
+
+                    "<span class='badge "
+
+                    +
+
+                    (
+                        record.status ===
+                        "Accepted Entry"
+                        ?
+                        "green"
+                        :
+                        "yellow"
+                    )
+
+                    +
+
+                    "'>"
+
+                    + record.status
+
+                    + "</span>"
+
+                    +
+
+                    "</div>";
+
+            }
+        );
+
+
+        html += "</div>";
+
+
+        document
+            .getElementById("searchResult")
+            .innerHTML =
+            html;
+
+
+    }catch(error){
+
+        document
+            .getElementById("searchResult")
+            .innerHTML =
+            "<p class='error'>Search failed.</p>";
+
+    }
+
+}
+
+
+/* =========================
+   ACTIVITY
+========================= */
+
+async function loadActivity(){
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/activity"
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if(!response.ok){
+
+            document
+                .getElementById("activity")
+                .innerHTML =
+                "<p class='error'>"
+                +
+                (data.error ||
+                "Unauthorized")
+                +
+                "</p>";
+
+            return;
+        }
+
+
+        if(
+            !data.activities ||
+            data.activities.length === 0
+        ){
+
+            document
+                .getElementById("activity")
+                .innerHTML =
+                "<p>No activity yet.</p>";
+
+            return;
+        }
+
+
+        document
+            .getElementById("activity")
+            .innerHTML =
+
+            data.activities
+            .map(
+                function(item){
+
+                    return
+
+                    "<div class='activity'>"
+
+                    +
+
+                    "<b>"
+                    + item.time
+                    + "</b>"
+
+                    +
+
+                    "<br>"
+
+                    +
+
+                    item.action
+
+                    +
+
+                    "<br>"
+
+                    +
+
+                    "<span class='small'>"
+                    + item.details
+                    + "</span>"
+
+                    +
+
+                    "</div>";
+
+                }
+            )
+            .join("");
+
+
+    }catch(error){
+
+        document
+            .getElementById("activity")
+            .innerHTML =
+            "<p class='error'>Activity load failed.</p>";
+
+    }
+
+}
+
+
+/* =========================
+   ADMIN LOGOUT
+========================= */
+
+async function adminLogout(){
+
+    await fetch(
+        "/api/admin/logout",
+        {
+            method:"POST"
+        }
+    );
+
+    location.reload();
+
+}
+
+
+/* =========================
+   MESSAGE
+========================= */
+
+function showLoginMessage(
+    message,
+    isError=false
+){
+
+    const element =
+        document
+        .getElementById("loginMsg");
+
+
+    element.textContent =
+        message;
+
+
+    element.className =
+        isError
+        ? "error"
+        : "success";
+
+}
+
+</script>
+
+</body>
+</html>
