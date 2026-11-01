@@ -142,8 +142,11 @@ def home():
         ".",
         "index.html"
     )
-    @app.get("/admin.html")
+
+
+@app.get("/admin.html")
 def admin_page():
+
     return send_from_directory(
         ".",
         "admin.html"
