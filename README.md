@@ -1,4 +1,4 @@
-# Neomax Help – Pilot v1
+# DevopsGuy06-help-pilot-testing
 
 This is a zero-cost local pilot using SYNTHETIC/DEMO data only.
 
