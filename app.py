@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, session, send_from_directory
 from functools import wraps
 import time
+import os
 import secrets
 
 app = Flask(__name__)
@@ -11,12 +12,12 @@ app = Flask(__name__)
 
 # PILOT ONLY
 # Production-ல் Environment Variable பயன்படுத்த வேண்டும்.
-app.secret_key = "PILOT-ONLY-CHANGE-IN-PRODUCTION"
+app.secret_key = os.environ.get("SECRET_KEY") or secrets.token_hex(32)
 
 # PILOT ADMIN LOGIN
 # Production-ல் இந்த password-ஐ code-ல் வைக்கக்கூடாது.
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "Admin@123"
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
 
 # =========================================================
 # SYNTHETIC / DEMO DATA ONLY
@@ -468,6 +469,9 @@ def admin_login():
         )
     )
 
+    if not ADMIN_USERNAME or not ADMIN_PASSWORD:
+        return jsonify({"error": "Admin login is not configured."}), 503
+
     if (
         secrets.compare_digest(
             username,
@@ -712,7 +716,7 @@ def health():
 if __name__ == "__main__":
 
     app.run(
-        host="0.0.0.0",
+        host=os.environ.get("HOST", "127.0.0.1"),
         port=5000,
         debug=False
     )
