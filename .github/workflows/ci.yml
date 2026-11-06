@@ -39,3 +39,28 @@ jobs:
 
       - name: pip-audit (dependency scan)
         run: pip-audit -r requirements.txt
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t neomax-help:ci .
+
+      - name: Run container
+        run: >
+          docker run -d --name app -p 8000:8000
+          -e ADMIN_USERNAME=ci
+          -e ADMIN_PASSWORD=ci-test-pass
+          -e SECRET_KEY=ci-test-key
+          neomax-help:ci
+
+      - name: Smoke test
+        run: |
+          sleep 5
+          curl --fail http://localhost:8000/api/health
+
+      - name: Show logs on failure
+        if: failure()
+        run: docker logs app
