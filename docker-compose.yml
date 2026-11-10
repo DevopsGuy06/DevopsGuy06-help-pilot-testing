@@ -1,0 +1,21 @@
+services:
+  app:
+    build: .
+    environment:
+      ADMIN_USERNAME: demo
+      ADMIN_PASSWORD: TestPass123
+      SECRET_KEY: localtest
+    ports:
+      - "8000:8000"
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
