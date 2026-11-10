@@ -1,11 +1,28 @@
 from flask import Flask, jsonify, request, session, send_from_directory
+from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
 from functools import wraps
 import time
 import os
 import secrets
 
 app = Flask(__name__)
+REQUESTS = Counter(
+    "http_requests_total",
+    "Total HTTP requests",
+    ["method", "route", "status"],
+)
 
+
+@app.after_request
+def count_request(response):
+    route = request.url_rule.rule if request.url_rule else "unmatched"
+    REQUESTS.labels(request.method, route, response.status_code).inc()
+    return response
+
+
+@app.get("/metrics")
+def metrics():
+    return generate_latest(), 200, {"Content-Type": CONTENT_TYPE_LATEST}
 # =========================================================
 # PILOT SECURITY SETTINGS
 # =========================================================

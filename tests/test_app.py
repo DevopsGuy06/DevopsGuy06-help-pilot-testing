@@ -32,3 +32,9 @@ def test_wrong_otp_is_rejected():
         json={"depositor_no": "PILOT1001", "otp": "000000"},
     )
     assert response.status_code == 401
+def test_metrics_endpoint():
+    client = app.test_client()
+    client.get("/api/health")
+    response = client.get("/metrics")
+    assert response.status_code == 200
+    assert b"http_requests_total" in response.data
