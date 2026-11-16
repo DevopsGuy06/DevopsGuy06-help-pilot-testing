@@ -1,0 +1,20 @@
+groups:
+  - name: neomax-help-alerts
+    rules:
+      - alert: NeomaxAppDown
+        expr: up{job="neomax-help"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Neomax Help app is DOWN"
+          description: "Prometheus cannot reach {{ $labels.instance }} for more than 30 seconds."
+
+      - alert: NeomaxHighRateLimiting
+        expr: sum(rate(http_requests_total{status="429"}[1m])) > 0.5
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Many requests are being rate limited (429)"
+          description: "Possible abuse or brute-force attempt."
