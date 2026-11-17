@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neomax-help
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: neomax-help
+  template:
+    metadata:
+      labels:
+        app: neomax-help
+    spec:
+      containers:
+        - name: app
+          image: neomax-help:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: neomax-secrets
